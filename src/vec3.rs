@@ -57,7 +57,7 @@ impl Vec3 {
         }
     }
 
-    pub fn normalize(self) -> Vec3 {
+    pub fn normalize(&self) -> Vec3 {
         self / self.length()
     }
 
