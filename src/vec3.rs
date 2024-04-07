@@ -1,4 +1,3 @@
-// Adapted from https://github.com/ryankaplan/vec3
 
 use std::ops::{
     Add, AddAssign, Div, DivAssign, Index, IndexMut, Mul, MulAssign, Neg, Sub, SubAssign,
@@ -177,6 +176,18 @@ impl Color3 {
         z: 255.0,
     };
 
+    pub const WHITE: Color3 = Color3 {
+        x: 255.0,
+        y: 255.0,
+        z: 255.0,
+    };
+
+    pub const BLACK: Color3 = Color3 {
+        x: 0.0,
+        y: 0.0,
+        z: 0.0,
+    };
+
     pub fn red(&self) -> f32 {
         self.x
     }
@@ -185,6 +196,14 @@ impl Color3 {
     }
     pub fn blue(&self) -> f32 {
         self.z
+    }
+    
+    pub fn from_normalized(r: f32, g: f32, b: f32) -> Color3 {
+        Color3 {
+            x: 255.0 * r,
+            y: 255.0 * g,
+            z: 255.0 * b,
+        }
     }
 }
 #[allow(clippy::op_ref)]

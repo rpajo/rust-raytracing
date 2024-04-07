@@ -1,3 +1,5 @@
+// Adapted from https://github.com/ryankaplan/vec3
+
 // This macro helps us implement math operators on Vector3
 // in such a way that it handles binary operators on any
 // combination of Vec3, &Vec3 and f32.

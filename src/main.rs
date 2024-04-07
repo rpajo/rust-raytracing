@@ -8,25 +8,28 @@ mod utils;
 mod vec3;
 
 fn main() -> std::io::Result<()> {
+    let filename = "render.ppm";
     let mut file = OpenOptions::new()
         .read(true)
         .write(true)
         .create(true)
         .truncate(true)
-        .open("render.ppm")?;
+        .open(filename)?;
 
     let mut write_buffer = String::new();
 
     let image_aspect_ratio = 16.0 / 9.0;
-    let render_image_width = 480;
+    let render_image_width = 1024;
     let render_image_height = (render_image_width as f32 / image_aspect_ratio) as i32;
 
     let viewport_height = 2.0;
-    let viewport_width = image_aspect_ratio * viewport_height;
+    let image_ratio = render_image_width as f32 / render_image_height as f32;
+    let viewport_width = image_ratio * viewport_height; // use `image_ratio` for exact ratio
     let focal_length = 1.0;
 
     let camera_pos = Vec3::ZERO;
-    // vp - viewport
+
+    // view port relative vectors (x along the width and y along the height of the viewport)
     let vp_x_dir = Vec3::new(viewport_width, 0.0, 0.0);
     let vp_y_dir = Vec3::new(0.0, viewport_height, 0.0);
     let vp_origin_left_bottom =
@@ -64,5 +67,6 @@ fn main() -> std::io::Result<()> {
         eprintln!("Failed to write to file");
         eprintln!("{:?}", write_result.err());
     }
+    println!("Written to: {}", filename);
     Ok(())
 }
