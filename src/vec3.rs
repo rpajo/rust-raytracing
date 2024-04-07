@@ -1,6 +1,10 @@
 // Adapted from https://github.com/ryankaplan/vec3
 
-use std::ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Neg, Sub, SubAssign};
+use std::ops::{
+    Add, AddAssign, Div, DivAssign, Index, IndexMut, Mul, MulAssign, Neg, Sub, SubAssign,
+};
+
+use crate::{impl_binary_operations, impl_op_assign, impl_unary_operations};
 
 #[derive(Debug, Copy, Clone)]
 pub enum Axis {
@@ -15,13 +19,17 @@ pub struct Vec3 {
     pub y: f32,
     pub z: f32,
 }
-
-pub type Color3 = Vec3;
-pub type Pos3 = Vec3;
-
 impl Vec3 {
-    pub const ZERO: Vec3 = Vec3 { x: 0.0, y: 0.0, z: 0.0 };
-    pub const ONE: Vec3 = Vec3 { x: 1.0, y: 1.0, z: 1.0 };
+    pub const ZERO: Vec3 = Vec3 {
+        x: 0.0,
+        y: 0.0,
+        z: 0.0,
+    };
+    pub const ONE: Vec3 = Vec3 {
+        x: 1.0,
+        y: 1.0,
+        z: 1.0,
+    };
 
     pub fn from_float(value: f32) -> Vec3 {
         Vec3 {
@@ -51,9 +59,15 @@ impl Vec3 {
     // sets `some_vec.x` to 1.0`.
     pub fn set_component(&mut self, axis: Axis, value: f32) {
         match axis {
-            Axis::X => { self.x = value; }
-            Axis::Y => { self.y = value; }
-            Axis::Z => { self.z = value; }
+            Axis::X => {
+                self.x = value;
+            }
+            Axis::Y => {
+                self.y = value;
+            }
+            Axis::Z => {
+                self.z = value;
+            }
         }
     }
 
@@ -98,177 +112,35 @@ impl Vec3 {
     }
 }
 
-// This macro helps us implement math operators on Vector3
-// in such a way that it handles binary operators on any
-// combination of Vec3, &Vec3 and f32.
-macro_rules! impl_binary_operations {
-  // $VectorType is something like `Vec3`
-  // $Operation is something like `Add`
-  // $op_fn is something like `add`
-  // $op_symbol is something like `+`
-  ($VectorType:ident $Operation:ident $op_fn:ident $op_symbol:tt) => {
-    // Implement a + b where a and b are both of type &VectorType.
-    // Lower down we'll implement cases where either a or b - or both
-    // - are values by forwarding through to this implementation.
-    impl<'a, 'b> $Operation<&'a $VectorType> for &'b $VectorType {
-      type Output = $VectorType;
-      fn $op_fn(self, other: &'a $VectorType) -> $VectorType {
-        $VectorType {
-          x: self.x $op_symbol other.x,
-          y: self.y $op_symbol other.y,
-          z: self.z $op_symbol other.z,
-        }
-      }
+impl Default for Vec3 {
+    fn default() -> Self {
+        Vec3::ZERO
     }
-
-    // Implement a + b for the cases...
-    //
-    //   a: $VectorType,  b: &$VectorType
-    //   a: &$VectorType, b: $VectorType
-    //   a: $VectorType, b: $VectorType
-    //
-    // In each case we forward through to the implementation above.
-    impl $Operation<$VectorType> for $VectorType {
-      type Output = $VectorType;
-
-      #[inline]
-      fn $op_fn(self, other: $VectorType) -> $VectorType {
-        &self $op_symbol &other
-      }
-    }
-
-    impl<'a> $Operation<&'a $VectorType> for $VectorType {
-      type Output = $VectorType;
-
-      #[inline]
-      fn $op_fn(self, other: &'a $VectorType) -> $VectorType {
-        &self $op_symbol other
-      }
-    }
-
-    impl<'a> $Operation<$VectorType> for &'a $VectorType {
-      type Output = $VectorType;
-
-      #[inline]
-      fn $op_fn(self, other: $VectorType) -> $VectorType {
-        self $op_symbol &other
-      }
-    }
-
-    // Implement a + b where a is type &$VectorType and b is type f32
-    impl<'a> $Operation<f32> for &'a $VectorType {
-      type Output = $VectorType;
-
-      fn $op_fn(self, other: f32) -> $VectorType {
-        $VectorType {
-          x: self.x $op_symbol other,
-          y: self.y $op_symbol other,
-          z: self.z $op_symbol other
-        }
-      }
-    }
-
-    // Implement a + b where...
-    //
-    // a is $VectorType and b is f32
-    // a is f32 and b is $VectorType
-    // a is f32 and b is &$VectorType
-    //
-    // In each case we forward the logic to the implementation
-    // above.
-    impl $Operation<f32> for $VectorType {
-      type Output = $VectorType;
-
-      #[inline]
-      fn $op_fn(self, other: f32) -> $VectorType {
-        &self $op_symbol other
-      }
-    }
-
-    impl $Operation<$VectorType> for f32 {
-      type Output = $VectorType;
-
-      #[inline]
-      fn $op_fn(self, other: $VectorType) -> $VectorType {
-        &other $op_symbol self
-      }
-    }
-
-    impl<'a> $Operation<&'a $VectorType> for f32 {
-      type Output = $VectorType;
-
-      #[inline]
-      fn $op_fn(self, other: &'a $VectorType) -> $VectorType {
-        other $op_symbol self
-      }
-    }
-  };
 }
 
-// It also implements unary operators like - a where a is of
-// type Vec3 or &Vec3.
-macro_rules! impl_unary_operations {
-  // $VectorType is something like `Vec3`
-  // $Operation is something like `Neg`
-  // $op_fn is something like `neg`
-  // $op_symbol is something like `-`
-  ($VectorType:ident $Operation:ident $op_fn:ident $op_symbol:tt) => {
-
-    // Implement the unary operator for references
-    impl<'a> $Operation for &'a $VectorType {
-      type Output = $VectorType;
-
-      fn $op_fn(self) -> Vec3 {
-        $VectorType {
-          x: $op_symbol self.x,
-          y: $op_symbol self.y,
-          z: $op_symbol self.z,
+impl Index<usize> for Vec3 {
+    type Output = f32;
+    #[inline]
+    fn index(&self, index: usize) -> &Self::Output {
+        match index {
+            0 => &self.x,
+            1 => &self.y,
+            2 => &self.z,
+            _ => panic!("index out of bounds"),
         }
-      }
     }
-
-    // Have the operator on values forward through to the implementation
-    // above
-    impl $Operation for $VectorType {
-      type Output = $VectorType;
-
-      #[inline]
-      fn $op_fn(self) -> Vec3 {
-        $op_symbol &self
-      }
-    }
-  };
 }
 
-// Implement add-assignment operators like a += b where a and
-// b is either &Vec3 or Vec3 (in this case a is always of type
-// &mut Vec3).
-macro_rules! impl_op_assign {
-  // $VectorType is something like `Vec3`
-  // $OperationAssign is something like `AddAssign`
-  // $op_fn is something like `add_assign`
-  // $op_symbol is something like `+=`
-  ($VectorType:ident $OperationAssign:ident $op_fn:ident $op_symbol:tt) => {
-    // Implement $OperationAssign for RHS &Vec3
-    impl<'a> $OperationAssign<&'a $VectorType> for $VectorType {
-      fn $op_fn(&mut self, other: &'a $VectorType) {
-        *self = $VectorType {
-          x: self.x $op_symbol other.x,
-          y: self.y $op_symbol other.y,
-          z: self.z $op_symbol other.z,
-        };
-      }
+impl IndexMut<usize> for Vec3 {
+    #[inline]
+    fn index_mut(&mut self, index: usize) -> &mut Self::Output {
+        match index {
+            0 => &mut self.x,
+            1 => &mut self.y,
+            2 => &mut self.z,
+            _ => panic!("index out of bounds"),
+        }
     }
-
-    // Implement $OperationAssign for RHS Vec3 by forwarding through to the
-    // implementation above
-    impl $OperationAssign for $VectorType {
-      #[inline]
-      fn $op_fn(&mut self, other: $VectorType) {
-        *self = *self $op_symbol &other
-      }
-    }
-  };
 }
 
 impl_binary_operations!(Vec3 Add add +);
@@ -284,6 +156,38 @@ impl_op_assign!(Vec3 MulAssign mul_assign *);
 impl_binary_operations!(Vec3 Div div /);
 impl_op_assign!(Vec3 DivAssign div_assign /);
 
+// These are just aliases for clarity.
+pub type Color3 = Vec3;
+pub type Pos3 = Vec3;
+
+impl Color3 {
+    pub const RED: Color3 = Color3 {
+        x: 255.0,
+        y: 0.0,
+        z: 0.0,
+    };
+    pub const GREEN: Color3 = Color3 {
+        x: 0.0,
+        y: 255.0,
+        z: 0.0,
+    };
+    pub const BLUE: Color3 = Color3 {
+        x: 0.0,
+        y: 0.0,
+        z: 255.0,
+    };
+
+    pub fn red(&self) -> f32 {
+        self.x
+    }
+    pub fn green(&self) -> f32 {
+        self.y
+    }
+    pub fn blue(&self) -> f32 {
+        self.z
+    }
+}
+#[allow(clippy::op_ref)]
 #[cfg(test)]
 mod tests {
     use super::*;
