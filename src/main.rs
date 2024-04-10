@@ -30,11 +30,20 @@ fn main() -> std::io::Result<()> {
     let camera_pos = Vec3::ZERO;
 
     // view port relative vectors (x along the width and y along the height of the viewport)
-    let vp_x_dir = Vec3::new(viewport_width, 0.0, 0.0);
-    let vp_y_dir = Vec3::new(0.0, viewport_height, 0.0);
-    let vp_origin_left_bottom =
-        camera_pos - (0.5 * vp_x_dir) - (0.5 * vp_y_dir) - Vec3::new(0.0, 0.0, focal_length);
+    // u => x axis in our basic case
+    // v => y axis in our basic case
+    // todo: if camera is pointing somewhere else, these vectors must also change
+    let vp_u_dir = Vec3::new(viewport_width, 0.0, 0.0);
+    let vp_v_dir = Vec3::new(0.0, -viewport_height, 0.0);
+    let vp_origin_upper_left =
+        camera_pos - (0.5 * vp_u_dir) - (0.5 * vp_v_dir) - Vec3::new(0.0, 0.0, focal_length);
 
+    let pixel_delta_u = vp_u_dir / render_image_width as f32;
+    let pixel_delta_v = vp_v_dir / render_image_height as f32;
+    let pixel_00_loc = vp_origin_upper_left + 0.5 * (pixel_delta_u + pixel_delta_v);
+
+    println!("Camera position: {:?}", camera_pos);
+    println!("Viewport upper left position: {:?}", vp_origin_upper_left);
     // export_ppm_image(255, 255);
 
     // Append ppm header
@@ -45,13 +54,11 @@ fn main() -> std::io::Result<()> {
         eprintln!("Scan-lines processed: {}/{}", y, render_image_height);
 
         for x in 0..render_image_width {
-            let v = (render_image_height - y) as f32 / (render_image_height - 1) as f32;
-            let u = x as f32 / (render_image_width - 1) as f32;
+            // let v = (render_image_height - y) as f32 / (render_image_height - 1) as f32;
+            // let u = x as f32 / (render_image_width - 1) as f32;
+            let pixel_pos = pixel_00_loc + y as f32 * pixel_delta_v + x as f32 * pixel_delta_u;
 
-            let ray = Ray::new(
-                camera_pos,
-                vp_origin_left_bottom + (u * vp_x_dir) + (v * vp_y_dir) - camera_pos,
-            );
+            let ray = Ray::new(camera_pos, pixel_pos - camera_pos);
 
             let pixel_color = ray.ray_bg_color();
             let rounded_color_vec = format!(
