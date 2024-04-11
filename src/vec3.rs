@@ -1,4 +1,3 @@
-
 use std::ops::{
     Add, AddAssign, Div, DivAssign, Index, IndexMut, Mul, MulAssign, Neg, Sub, SubAssign,
 };
@@ -197,8 +196,8 @@ impl Color3 {
     pub fn blue(&self) -> f32 {
         self.z
     }
-    
-    pub fn from_normalized(r: f32, g: f32, b: f32) -> Color3 {
+
+    pub fn from_f32(r: f32, g: f32, b: f32) -> Color3 {
         Color3 {
             x: 255.0 * r,
             y: 255.0 * g,
