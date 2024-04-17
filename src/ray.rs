@@ -1,4 +1,7 @@
-use crate::vec3::{Color3, Pos3, Vec3};
+use crate::{
+    vec3::{Color3, Pos3, Vec3},
+    world::World,
+};
 
 pub struct Ray {
     pub pos: Pos3,
@@ -19,12 +22,10 @@ impl Ray {
         self.pos + (scalar * self.dir)
     }
 
-    pub fn ray_bg_color(&self) -> Color3 {
-        // todo: for testing, move this out
-        let hit = self.hit_sphere(&Vec3::new(0.0, 0.0, -1.0), 0.5);
-        if let Some(hit_scalar) = hit {
-            // todo: use sphere radius
-            let normal_vec = (self.cast(hit_scalar) - Vec3::new(0.0, 0.0, -1.0)).normalize();
+    pub fn ray_color(&self, world: &World) -> Color3 {
+        let hit = world.hit_objects(self, 0.0, f32::MAX);
+        if let Some(hit) = hit {
+            let normal_vec = &hit.normal;
             return Color3::from_f32(normal_vec.x + 1.0, normal_vec.y + 1.0, normal_vec.z + 1.0)
                 * 0.5;
         }
@@ -67,8 +68,9 @@ mod test {
         let ray_down = Ray::new(Pos3::new(1.0, 2.0, 3.0), Vec3::new(0.0, -1.0, 0.0));
         ray_up.ray_color = Color3::new(1.0, 0.0, 0.0);
 
-        let color_up = ray_up.ray_bg_color();
-        let color_down = ray_down.ray_bg_color();
+        let world = World::new();
+        let color_up = ray_up.ray_color(&world);
+        let color_down = ray_down.ray_color(&world);
 
         assert_eq!(color_up, ray_up.ray_color);
         assert_eq!(color_down, Color3::new(1.0, 1.0, 1.0));

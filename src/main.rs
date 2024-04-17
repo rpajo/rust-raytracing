@@ -1,11 +1,15 @@
+use crate::ray::Ray;
+use crate::vec3::Vec3;
+use crate::world::World;
+use crate::{image::color_to_ppm, objects::sphere::Sphere};
 use std::{fs::OpenOptions, io::Write};
 
-use crate::{ray::Ray, vec3::Vec3};
-
 mod image;
+mod objects;
 mod ray;
 mod utils;
 mod vec3;
+mod world;
 
 fn main() -> std::io::Result<()> {
     let filename = "render.ppm";
@@ -42,30 +46,24 @@ fn main() -> std::io::Result<()> {
     let pixel_delta_v = vp_v_dir / render_image_height as f32;
     let pixel_00_loc = vp_origin_upper_left + 0.5 * (pixel_delta_u + pixel_delta_v);
 
-    println!("Camera position: {:?}", camera_pos);
-    println!("Viewport upper left position: {:?}", vp_origin_upper_left);
-    // export_ppm_image(255, 255);
+    let mut world = World::new();
+    world.add_object(Sphere::new(Vec3::new(0.0, 0.0, -1.0), 0.5));
+    world.add_object(Sphere::new(Vec3::new(0.0, -100.5, -1.0), 100.0));
 
     // Append ppm header
     write_buffer
         .push_str(format!("P3\n{} {}\n255\n", render_image_width, render_image_height).as_str());
 
     for y in 0..render_image_height {
-        eprintln!("Scan-lines processed: {}/{}", y, render_image_height);
+        // eprintln!("Scan-lines processed: {}/{}", y, render_image_height);
 
         for x in 0..render_image_width {
-            // let v = (render_image_height - y) as f32 / (render_image_height - 1) as f32;
-            // let u = x as f32 / (render_image_width - 1) as f32;
             let pixel_pos = pixel_00_loc + y as f32 * pixel_delta_v + x as f32 * pixel_delta_u;
 
             let ray = Ray::new(camera_pos, pixel_pos - camera_pos);
 
-            let pixel_color = ray.ray_bg_color();
-            let rounded_color_vec = format!(
-                "{} {} {}\n",
-                pixel_color.x as i32, pixel_color.y as i32, pixel_color.z as i32
-            );
-            write_buffer.push_str(rounded_color_vec.as_str());
+            let pixel_color = ray.ray_color(&world);
+            write_buffer.push_str(&color_to_ppm(&pixel_color));
         }
     }
 
