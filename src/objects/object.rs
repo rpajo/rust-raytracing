@@ -6,12 +6,12 @@ use crate::{
 pub struct HitRecord {
     pub point: Pos3,
     pub normal: Vec3,
-    pub ray_scalar: f32,
+    pub ray_scalar: f64,
     pub front_face: bool,
 }
 
 pub trait Object {
-    fn hit(&self, ray: &Ray, t_min: f32, t_max: f32) -> Option<HitRecord>;
+    fn hit(&self, ray: &Ray, t_min: f64, t_max: f64) -> Option<HitRecord>;
 }
 
 impl HitRecord {

@@ -20,7 +20,7 @@ impl World {
         self.objects.push(Rc::new(object));
     }
 
-    pub fn hit_objects(&self, ray: &Ray, t_min: f32, t_max: f32) -> Option<HitRecord> {
+    pub fn hit_objects(&self, ray: &Ray, t_min: f64, t_max: f64) -> Option<HitRecord> {
         let mut hit = None;
         let mut nearest_hit = t_max;
 

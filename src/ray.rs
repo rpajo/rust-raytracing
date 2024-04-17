@@ -14,19 +14,19 @@ impl Ray {
         Ray {
             pos: position,
             dir: direction,
-            ray_color: Color3::from_f32(0.5, 0.7, 1.0),
+            ray_color: Color3::from_f64(0.5, 0.7, 1.0),
         }
     }
 
-    pub fn cast(&self, scalar: f32) -> Pos3 {
+    pub fn cast(&self, scalar: f64) -> Pos3 {
         self.pos + (scalar * self.dir)
     }
 
     pub fn ray_color(&self, world: &World) -> Color3 {
-        let hit = world.hit_objects(self, 0.0, f32::MAX);
+        let hit = world.hit_objects(self, 0.0, f64::MAX);
         if let Some(hit) = hit {
             let normal_vec = &hit.normal;
-            return Color3::from_f32(normal_vec.x + 1.0, normal_vec.y + 1.0, normal_vec.z + 1.0)
+            return Color3::from_f64(normal_vec.x + 1.0, normal_vec.y + 1.0, normal_vec.z + 1.0)
                 * 0.5;
         }
         let dir_normalized = self.dir.normalize();
@@ -35,7 +35,7 @@ impl Ray {
         (1.0 - y_ratio) * Color3::WHITE + y_ratio * self.ray_color
     }
 
-    pub fn hit_sphere(&self, sphere_pos: &Pos3, radius: f32) -> Option<f32> {
+    pub fn hit_sphere(&self, sphere_pos: &Pos3, radius: f64) -> Option<f64> {
         let ray_to_sphere = sphere_pos - self.pos;
         let a = self.dir.length_squared();
         let h = Vec3::dot(&self.dir, &ray_to_sphere);
@@ -47,7 +47,7 @@ impl Ray {
             return None;
         }
 
-        Some((h - f32::sqrt(discriminant)) / a)
+        Some((h - f64::sqrt(discriminant)) / a)
     }
 }
 

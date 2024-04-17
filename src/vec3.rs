@@ -13,9 +13,9 @@ pub enum Axis {
 
 #[derive(Copy, Clone, Debug, PartialEq, PartialOrd)]
 pub struct Vec3 {
-    pub x: f32,
-    pub y: f32,
-    pub z: f32,
+    pub x: f64,
+    pub y: f64,
+    pub z: f64,
 }
 impl Vec3 {
     pub const ZERO: Vec3 = Vec3 {
@@ -29,7 +29,7 @@ impl Vec3 {
         z: 1.0,
     };
 
-    pub fn from_float(value: f32) -> Vec3 {
+    pub fn from_float(value: f64) -> Vec3 {
         Vec3 {
             x: value,
             y: value,
@@ -37,14 +37,14 @@ impl Vec3 {
         }
     }
 
-    pub fn new(x: f32, y: f32, z: f32) -> Vec3 {
+    pub fn new(x: f64, y: f64, z: f64) -> Vec3 {
         Vec3 { x, y, z }
     }
 
     // Returns the component of this vector along the specified
     // axis. For example, `some_vec.component(Axis::X)` returns
     // `some_vec.x`.
-    pub fn component(&self, axis: Axis) -> f32 {
+    pub fn component(&self, axis: Axis) -> f64 {
         match axis {
             Axis::X => self.x,
             Axis::Y => self.y,
@@ -55,7 +55,7 @@ impl Vec3 {
     // Sets the component of this vector along the specified
     // axis. For example, `some_vec.set_component(Axis::X, 1.0)`
     // sets `some_vec.x` to 1.0`.
-    pub fn set_component(&mut self, axis: Axis, value: f32) {
+    pub fn set_component(&mut self, axis: Axis, value: f64) {
         match axis {
             Axis::X => {
                 self.x = value;
@@ -73,7 +73,7 @@ impl Vec3 {
         self / self.length()
     }
 
-    pub fn length(&self) -> f32 {
+    pub fn length(&self) -> f64 {
         self.length_squared().sqrt()
     }
 
@@ -93,11 +93,11 @@ impl Vec3 {
         }
     }
 
-    pub fn length_squared(&self) -> f32 {
+    pub fn length_squared(&self) -> f64 {
         self.x * self.x + self.y * self.y + self.z * self.z
     }
 
-    pub fn dot(a: &Vec3, b: &Vec3) -> f32 {
+    pub fn dot(a: &Vec3, b: &Vec3) -> f64 {
         a.x * b.x + a.y * b.y + a.z * b.z
     }
 
@@ -117,7 +117,7 @@ impl Default for Vec3 {
 }
 
 impl Index<usize> for Vec3 {
-    type Output = f32;
+    type Output = f64;
     #[inline]
     fn index(&self, index: usize) -> &Self::Output {
         match index {
@@ -187,17 +187,17 @@ impl Color3 {
         z: 0.0,
     };
 
-    pub fn red(&self) -> f32 {
+    pub fn red(&self) -> f64 {
         self.x
     }
-    pub fn green(&self) -> f32 {
+    pub fn green(&self) -> f64 {
         self.y
     }
-    pub fn blue(&self) -> f32 {
+    pub fn blue(&self) -> f64 {
         self.z
     }
 
-    pub fn from_f32(r: f32, g: f32, b: f32) -> Color3 {
+    pub fn from_f64(r: f64, g: f64, b: f64) -> Color3 {
         Color3 {
             x: 255.0 * r,
             y: 255.0 * g,
@@ -325,7 +325,7 @@ mod tests {
         let a = Vec3::new(3.0, 2.0, 1.0);
         assert_eq!(
             a.length(),
-            ((3.0 * 3.0 + 2.0 * 2.0 + 1.0 * 1.0) as f32).sqrt()
+            ((3.0 * 3.0 + 2.0 * 2.0 + 1.0 * 1.0) as f64).sqrt()
         );
 
         let b = Vec3::from_float(0.0);

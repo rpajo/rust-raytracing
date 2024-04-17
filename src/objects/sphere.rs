@@ -7,11 +7,11 @@ use crate::{
 #[derive(Debug)]
 pub struct Sphere {
     center: Pos3,
-    radius: f32,
+    radius: f64,
 }
 
 impl Object for Sphere {
-    fn hit(&self, ray: &Ray, t_min: f32, t_max: f32) -> Option<HitRecord> {
+    fn hit(&self, ray: &Ray, t_min: f64, t_max: f64) -> Option<HitRecord> {
         let ray_to_sphere = self.center - ray.pos;
         let a = ray.dir.length_squared();
         let h = Vec3::dot(&ray.dir, &ray_to_sphere);
@@ -23,7 +23,7 @@ impl Object for Sphere {
             return None;
         }
         let disc_sqr = discriminant.sqrt();
-        let mut root: f32 = (h - disc_sqr) / a;
+        let mut root: f64 = (h - disc_sqr) / a;
 
         // try first root
         if root <= t_min || root >= t_max {
@@ -50,7 +50,7 @@ impl Object for Sphere {
 }
 
 impl Sphere {
-    pub fn new(position: Vec3, radius: f32) -> Self {
+    pub fn new(position: Vec3, radius: f64) -> Self {
         Self {
             center: position,
             radius,

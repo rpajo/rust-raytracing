@@ -2,7 +2,7 @@
 
 // This macro helps us implement math operators on Vector3
 // in such a way that it handles binary operators on any
-// combination of Vec3, &Vec3 and f32.
+// combination of Vec3, &Vec3 and f64.
 #[macro_export]
 macro_rules! impl_binary_operations {
     // $VectorType is something like `Vec3`
@@ -58,11 +58,11 @@ macro_rules! impl_binary_operations {
             }
         }
 
-        // Implement a + b where a is type &$VectorType and b is type f32
-        impl<'a> $Operation<f32> for &'a $VectorType {
+        // Implement a + b where a is type &$VectorType and b is type f64
+        impl<'a> $Operation<f64> for &'a $VectorType {
             type Output = $VectorType;
 
-            fn $op_fn(self, other: f32) -> $VectorType {
+            fn $op_fn(self, other: f64) -> $VectorType {
                 $VectorType {
                     x: self.x $op_symbol other,
                     y: self.y $op_symbol other,
@@ -73,22 +73,22 @@ macro_rules! impl_binary_operations {
 
         // Implement a + b where...
         //
-        // a is $VectorType and b is f32
-        // a is f32 and b is $VectorType
-        // a is f32 and b is &$VectorType
+        // a is $VectorType and b is f64
+        // a is f64 and b is $VectorType
+        // a is f64 and b is &$VectorType
         //
         // In each case we forward the logic to the implementation
         // above.
-        impl $Operation<f32> for $VectorType {
+        impl $Operation<f64> for $VectorType {
             type Output = $VectorType;
 
             #[inline]
-            fn $op_fn(self, other: f32) -> $VectorType {
+            fn $op_fn(self, other: f64) -> $VectorType {
                 &self $op_symbol other
             }
         }
 
-        impl $Operation<$VectorType> for f32 {
+        impl $Operation<$VectorType> for f64 {
             type Output = $VectorType;
 
             #[inline]
@@ -97,7 +97,7 @@ macro_rules! impl_binary_operations {
             }
         }
 
-        impl<'a> $Operation<&'a $VectorType> for f32 {
+        impl<'a> $Operation<&'a $VectorType> for f64 {
             type Output = $VectorType;
 
             #[inline]
