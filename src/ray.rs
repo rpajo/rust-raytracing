@@ -1,4 +1,5 @@
 use crate::{
+    utils::interval::Interval,
     vec3::{Color3, Pos3, Vec3},
     world::World,
 };
@@ -23,7 +24,7 @@ impl Ray {
     }
 
     pub fn ray_color(&self, world: &World) -> Color3 {
-        let hit = world.hit_objects(self, 0.0, f64::MAX);
+        let hit = world.hit_objects(self, &Interval::new(0.0, f64::MAX));
         if let Some(hit) = hit {
             let normal_vec = &hit.normal;
             return Color3::from_f64(normal_vec.x + 1.0, normal_vec.y + 1.0, normal_vec.z + 1.0)
@@ -33,21 +34,6 @@ impl Ray {
         let y_ratio = 0.5 * (dir_normalized.y + 1.0); // move normalized y-axis from [-1, 1] to [0, 2] and multiply with .5 for [0, 1]
 
         (1.0 - y_ratio) * Color3::WHITE + y_ratio * self.ray_color
-    }
-
-    pub fn hit_sphere(&self, sphere_pos: &Pos3, radius: f64) -> Option<f64> {
-        let ray_to_sphere = sphere_pos - self.pos;
-        let a = self.dir.length_squared();
-        let h = Vec3::dot(&self.dir, &ray_to_sphere);
-        // let b = -2.0 * Vec3::dot(&self.dir, &ray_to_sphere);
-        let c = ray_to_sphere.length_squared() - radius * radius;
-        let discriminant = h * h - a * c;
-
-        if discriminant < 0.0 {
-            return None;
-        }
-
-        Some((h - f64::sqrt(discriminant)) / a)
     }
 }
 

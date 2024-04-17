@@ -1,2 +1,3 @@
+pub mod interval;
 mod macros;
-mod math;
+pub mod math;

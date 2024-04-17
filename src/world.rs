@@ -3,6 +3,7 @@ use std::rc::Rc;
 use crate::{
     objects::object::{HitRecord, Object},
     ray::Ray,
+    utils::interval::Interval,
 };
 
 pub struct World {
@@ -20,12 +21,12 @@ impl World {
         self.objects.push(Rc::new(object));
     }
 
-    pub fn hit_objects(&self, ray: &Ray, t_min: f64, t_max: f64) -> Option<HitRecord> {
-        let mut hit = None;
-        let mut nearest_hit = t_max;
+    pub fn hit_objects(&self, ray: &Ray, t_interval: &Interval) -> Option<HitRecord> {
+        let mut hit: Option<HitRecord> = None;
+        let mut nearest_hit = t_interval.max;
 
         for obj in &self.objects {
-            if let Some(h) = obj.hit(ray, t_min, nearest_hit) {
+            if let Some(h) = obj.hit(ray, t_interval.min, nearest_hit) {
                 nearest_hit = h.ray_scalar;
                 hit = Some(h);
             }
