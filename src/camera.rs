@@ -1,9 +1,15 @@
+use rand::Rng;
 use std::{
     fs::OpenOptions,
     io::{Error, Write},
 };
 
-use crate::{image::color_to_ppm, ray::Ray, vec3::Vec3, world::World};
+use crate::{
+    image::color_to_ppm,
+    ray::Ray,
+    vec3::{Color3, Vec3},
+    world::World,
+};
 
 pub struct Camera {
     pub aspect_ratio: f64,
@@ -18,6 +24,14 @@ pub struct Camera {
     pixel_delta_u: Vec3,
     pixel_delta_v: Vec3,
     pixel_00_loc: Vec3,
+
+    anti_aliasing: AntiAliasingMethod,
+}
+
+enum AntiAliasingMethod {
+    None,
+    UniformSuperSampling(i8),
+    RandomSuperSampling(i8),
 }
 
 impl Camera {
@@ -27,7 +41,7 @@ impl Camera {
 
         let focal_length = 1.0;
         let vp_height = 2.0;
-        let vp_width = vp_height + image_ratio;
+        let vp_width = vp_height * image_ratio;
 
         let camera_position = Vec3::ZERO;
         // view port relative vectors (x along the width and y along the height of the viewport)
@@ -56,6 +70,8 @@ impl Camera {
             pixel_00_loc,
             pixel_delta_u,
             pixel_delta_v,
+            anti_aliasing: AntiAliasingMethod::RandomSuperSampling(8),
+            // anti_aliasing: AntiAliasingMethod::None,
         }
     }
 
@@ -79,16 +95,33 @@ impl Camera {
         );
 
         for y in 0..self.render_image_heigh {
-            // eprintln!("Scan-lines processed: {}/{}", y, render_image_height);
+            eprintln!("Scan-lines processed: {}/{}", y, self.render_image_heigh);
 
             for x in 0..self.render_image_width {
-                let pixel_pos = self.pixel_00_loc
-                    + y as f64 * self.pixel_delta_v
-                    + x as f64 * self.pixel_delta_u;
+                let pixel_color = match self.anti_aliasing {
+                    AntiAliasingMethod::None => {
+                        let pixel_pos = self.pixel_00_loc
+                            + y as f64 * self.pixel_delta_v
+                            + x as f64 * self.pixel_delta_u;
+                        let ray = Ray::new(self.position, pixel_pos - self.position);
+                        ray.ray_color(world)
+                    }
+                    AntiAliasingMethod::RandomSuperSampling(samples) => {
+                        let mut color_sum = Color3::ZERO;
+                        for _ in 0..samples {
+                            let ray = self.get_random_ray(x, y);
+                            let ray_color = ray.ray_color(world);
+                            color_sum += ray_color;
+                        }
+                        Color3 {
+                            x: (color_sum.x / samples as f64).round(),
+                            z: (color_sum.z / samples as f64).round(),
+                            y: (color_sum.y / samples as f64).round(),
+                        }
+                    }
+                    AntiAliasingMethod::UniformSuperSampling(_samples) => Color3::ZERO,
+                };
 
-                let ray = Ray::new(self.position, pixel_pos - self.position);
-
-                let pixel_color = ray.ray_color(world);
                 write_buffer.push_str(&color_to_ppm(&pixel_color));
             }
         }
@@ -101,5 +134,18 @@ impl Camera {
         println!("Written to: {}", filename);
 
         Ok(())
+    }
+
+    fn get_random_ray(&self, x: i32, y: i32) -> Ray {
+        let mut rng = rand::thread_rng();
+        let offset_x = rng.gen_range(-0.5..0.5);
+        let offset_y = rng.gen_range(-0.5..0.5);
+        // println!("rand x: {}, rand y: {}", offset_x, offset_y);
+
+        let pixel_pos = self.pixel_00_loc
+            + (y as f64 + offset_x) * self.pixel_delta_v
+            + (x as f64 + offset_y) * self.pixel_delta_u;
+
+        Ray::new(self.position, pixel_pos - self.position)
     }
 }
