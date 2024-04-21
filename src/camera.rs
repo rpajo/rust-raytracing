@@ -14,6 +14,8 @@ use crate::{
 pub struct Camera {
     pub aspect_ratio: f64,
     pub render_image_width: i32,
+    pub anti_aliasing: AntiAliasingMethod,
+    pub max_ray_bounces: u16,
 
     render_image_heigh: i32,
     viewport_height: f64,
@@ -24,11 +26,9 @@ pub struct Camera {
     pixel_delta_u: Vec3,
     pixel_delta_v: Vec3,
     pixel_00_loc: Vec3,
-
-    anti_aliasing: AntiAliasingMethod,
 }
 
-enum AntiAliasingMethod {
+pub enum AntiAliasingMethod {
     None,
     UniformSuperSampling(i8),
     RandomSuperSampling(i8),
@@ -70,8 +70,8 @@ impl Camera {
             pixel_00_loc,
             pixel_delta_u,
             pixel_delta_v,
-            anti_aliasing: AntiAliasingMethod::RandomSuperSampling(8),
-            // anti_aliasing: AntiAliasingMethod::None,
+            anti_aliasing: AntiAliasingMethod::None,
+            max_ray_bounces: 10,
         }
     }
 
@@ -104,13 +104,13 @@ impl Camera {
                             + y as f64 * self.pixel_delta_v
                             + x as f64 * self.pixel_delta_u;
                         let ray = Ray::new(self.position, pixel_pos - self.position);
-                        ray.ray_color(world)
+                        ray.ray_color(world, self.max_ray_bounces)
                     }
                     AntiAliasingMethod::RandomSuperSampling(samples) => {
                         let mut color_sum = Color3::ZERO;
                         for _ in 0..samples {
                             let ray = self.get_random_ray(x, y);
-                            let ray_color = ray.ray_color(world);
+                            let ray_color = ray.ray_color(world, self.max_ray_bounces);
                             color_sum += ray_color;
                         }
                         Color3 {

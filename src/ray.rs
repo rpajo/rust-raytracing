@@ -1,5 +1,5 @@
 use crate::{
-    utils::interval::Interval,
+    utils::{helpers, interval::Interval},
     vec3::{Color3, Pos3, Vec3},
     world::World,
 };
@@ -23,12 +23,23 @@ impl Ray {
         self.pos + (scalar * self.dir)
     }
 
-    pub fn ray_color(&self, world: &World) -> Color3 {
-        let hit = world.hit_objects(self, &Interval::new(0.0, f64::MAX));
+    pub fn ray_color(&self, world: &World, bounces_remaining: u16) -> Color3 {
+        if bounces_remaining == 0 {
+            // println!("Max bounces exceeded");
+            return Color3::BLACK;
+        }
+
+        let hit = world.hit_objects(self, &Interval::new(0.000001, f64::MAX));
         if let Some(hit) = hit {
-            let normal_vec = &hit.normal;
-            return Color3::from_f64(normal_vec.x + 1.0, normal_vec.y + 1.0, normal_vec.z + 1.0)
-                * 0.5;
+            // Todo: move to Normal material
+            // let normal_vec = &hit.normal;
+            // return Color3::from_f64(normal_vec.x + 1.0, normal_vec.y + 1.0, normal_vec.z + 1.0)
+            //     * 0.5;
+
+            let random_vec = helpers::random_on_hemisphere(&hit.normal);
+            let diffusion_ray = Ray::new(hit.point, random_vec);
+            // todo: use color instead of 0.5 as gray
+            return 0.5 * diffusion_ray.ray_color(world, bounces_remaining - 1);
         }
         let dir_normalized = self.dir.normalize();
         let y_ratio = 0.5 * (dir_normalized.y + 1.0); // move normalized y-axis from [-1, 1] to [0, 2] and multiply with .5 for [0, 1]
@@ -55,8 +66,8 @@ mod test {
         ray_up.ray_color = Color3::new(1.0, 0.0, 0.0);
 
         let world = World::new();
-        let color_up = ray_up.ray_color(&world);
-        let color_down = ray_down.ray_color(&world);
+        let color_up = ray_up.ray_color(&world, 1);
+        let color_down = ray_down.ray_color(&world, 1);
 
         assert_eq!(color_up, ray_up.ray_color);
         assert_eq!(color_down, Color3::new(1.0, 1.0, 1.0));

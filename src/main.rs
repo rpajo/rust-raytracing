@@ -1,4 +1,4 @@
-use camera::Camera;
+use camera::{AntiAliasingMethod, Camera};
 use objects::sphere::Sphere;
 
 use crate::vec3::Vec3;
@@ -16,7 +16,10 @@ fn main() -> std::io::Result<()> {
     let filename = "render.ppm";
     let aspect_ratio = 16.0 / 9.0;
     let image_width = 1024;
-    let camera = Camera::new(image_width, aspect_ratio);
+
+    let mut camera = Camera::new(image_width, aspect_ratio);
+    camera.anti_aliasing = AntiAliasingMethod::RandomSuperSampling(8);
+    camera.max_ray_bounces = 50;
 
     let mut world = World::new();
     world.add_object(Sphere::new(Vec3::new(0.0, 0.0, -1.0), 0.5));

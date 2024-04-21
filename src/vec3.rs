@@ -2,6 +2,8 @@ use std::ops::{
     Add, AddAssign, Div, DivAssign, Index, IndexMut, Mul, MulAssign, Neg, Sub, SubAssign,
 };
 
+use rand::Rng;
+
 use crate::{impl_binary_operations, impl_op_assign, impl_unary_operations};
 
 #[derive(Debug, Copy, Clone)]
@@ -108,6 +110,15 @@ impl Vec3 {
             z: a.x * b.y - a.y * b.x,
         }
     }
+
+    pub fn random(min: f64, max: f64) -> Vec3 {
+        let mut rng = rand::thread_rng();
+        Vec3::new(
+            rng.gen_range(min..max),
+            rng.gen_range(min..max),
+            rng.gen_range(min..max),
+        )
+    }
 }
 
 impl Default for Vec3 {
@@ -197,6 +208,7 @@ impl Color3 {
         self.z
     }
 
+    // todo: implement From trait
     pub fn from_f64(r: f64, g: f64, b: f64) -> Color3 {
         Color3 {
             x: 255.0 * r,
