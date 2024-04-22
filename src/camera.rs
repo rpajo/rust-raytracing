@@ -113,11 +113,7 @@ impl Camera {
                             let ray_color = ray.ray_color(world, self.max_ray_bounces);
                             color_sum += ray_color;
                         }
-                        Color3 {
-                            x: (color_sum.x / samples as f64).round(),
-                            z: (color_sum.z / samples as f64).round(),
-                            y: (color_sum.y / samples as f64).round(),
-                        }
+                        color_sum / samples as f64
                     }
                     AntiAliasingMethod::UniformSuperSampling(_samples) => Color3::ZERO,
                 };

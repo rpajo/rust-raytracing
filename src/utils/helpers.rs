@@ -26,3 +26,10 @@ pub fn random_on_hemisphere(normal: &Vec3) -> Vec3 {
         -on_unit_sphere
     }
 }
+
+pub fn linear_to_gamma_color(value: f64) -> f64 {
+    if value == 0.0 {
+        return 0.0;
+    }
+    value.sqrt()
+}

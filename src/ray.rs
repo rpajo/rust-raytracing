@@ -15,7 +15,7 @@ impl Ray {
         Ray {
             pos: position,
             dir: direction,
-            ray_color: Color3::from_f64(0.5, 0.7, 1.0),
+            ray_color: Color3::new(0.5, 0.7, 1.0),
         }
     }
 
@@ -36,7 +36,7 @@ impl Ray {
             // return Color3::from_f64(normal_vec.x + 1.0, normal_vec.y + 1.0, normal_vec.z + 1.0)
             //     * 0.5;
 
-            let random_vec = helpers::random_on_hemisphere(&hit.normal);
+            let random_vec = hit.normal + helpers::random_in_unit_sphere_normalized();
             let diffusion_ray = Ray::new(hit.point, random_vec);
             // todo: use color instead of 0.5 as gray
             return 0.5 * diffusion_ray.ray_color(world, bounces_remaining - 1);

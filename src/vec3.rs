@@ -171,25 +171,25 @@ pub type Pos3 = Vec3;
 
 impl Color3 {
     pub const RED: Color3 = Color3 {
-        x: 255.0,
+        x: 1.0,
         y: 0.0,
         z: 0.0,
     };
     pub const GREEN: Color3 = Color3 {
         x: 0.0,
-        y: 255.0,
+        y: 1.0,
         z: 0.0,
     };
     pub const BLUE: Color3 = Color3 {
         x: 0.0,
         y: 0.0,
-        z: 255.0,
+        z: 1.0,
     };
 
     pub const WHITE: Color3 = Color3 {
-        x: 255.0,
-        y: 255.0,
-        z: 255.0,
+        x: 1.0,
+        y: 1.0,
+        z: 1.0,
     };
 
     pub const BLACK: Color3 = Color3 {
@@ -206,15 +206,6 @@ impl Color3 {
     }
     pub fn blue(&self) -> f64 {
         self.z
-    }
-
-    // todo: implement From trait
-    pub fn from_f64(r: f64, g: f64, b: f64) -> Color3 {
-        Color3 {
-            x: 255.0 * r,
-            y: 255.0 * g,
-            z: 255.0 * b,
-        }
     }
 }
 #[allow(clippy::op_ref)]
