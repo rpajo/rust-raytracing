@@ -31,15 +31,12 @@ impl Ray {
 
         let hit = world.hit_objects(self, &Interval::new(0.000001, f64::MAX));
         if let Some(hit) = hit {
-            // Todo: move to Normal material
-            // let normal_vec = &hit.normal;
-            // return Color3::from_f64(normal_vec.x + 1.0, normal_vec.y + 1.0, normal_vec.z + 1.0)
-            //     * 0.5;
-
-            let random_vec = hit.normal + helpers::random_in_unit_sphere_normalized();
-            let diffusion_ray = Ray::new(hit.point, random_vec);
-            // todo: use color instead of 0.5 as gray
-            return 0.5 * diffusion_ray.ray_color(world, bounces_remaining - 1);
+            return match hit.material.reflect(&self, &hit) {
+                Some((attenuation, reflected_ray)) => {
+                    attenuation * reflected_ray.ray_color(world, bounces_remaining - 1)
+                }
+                None => Color3::BLACK,
+            };
         }
         let dir_normalized = self.dir.normalize();
         let y_ratio = 0.5 * (dir_normalized.y + 1.0); // move normalized y-axis from [-1, 1] to [0, 2] and multiply with .5 for [0, 1]

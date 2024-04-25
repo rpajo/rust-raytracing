@@ -1,13 +1,16 @@
+use std::rc::Rc;
+
 use super::object::{HitRecord, Object};
 use crate::{
+    material::{Lambert, Material},
     ray::Ray,
     vec3::{Pos3, Vec3},
 };
 
-#[derive(Debug)]
 pub struct Sphere {
     center: Pos3,
     radius: f64,
+    material: Rc<dyn Material>,
 }
 
 impl Object for Sphere {
@@ -40,6 +43,7 @@ impl Object for Sphere {
             point: hit_point,
             normal: (hit_point - self.center) / self.radius,
             front_face: true,
+            material: self.material.clone(),
         };
 
         let normal = (hit_point - self.center) / self.radius;
@@ -50,10 +54,12 @@ impl Object for Sphere {
 }
 
 impl Sphere {
-    pub fn new(position: Vec3, radius: f64) -> Self {
+    // todo: fix lifetime
+    pub fn new(position: Vec3, radius: f64, material: impl Material + 'static) -> Self {
         Self {
             center: position,
             radius,
+            material: Rc::new(material),
         }
     }
 }

@@ -1,4 +1,7 @@
+use std::rc::Rc;
+
 use crate::{
+    material::Material,
     ray::Ray,
     vec3::{Pos3, Vec3},
 };
@@ -8,6 +11,7 @@ pub struct HitRecord {
     pub normal: Vec3,
     pub ray_scalar: f64,
     pub front_face: bool,
+    pub material: Rc<dyn Material>,
 }
 
 pub trait Object {
