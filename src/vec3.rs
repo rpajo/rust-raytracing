@@ -119,6 +119,11 @@ impl Vec3 {
             rng.gen_range(min..max),
         )
     }
+
+    pub fn near_zero(&self) -> bool {
+        let tolerance = 0.00000001;
+        self.x.abs() < tolerance && self.y.abs() < tolerance && self.z.abs() < tolerance
+    }
 }
 
 impl Default for Vec3 {

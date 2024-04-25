@@ -33,3 +33,7 @@ pub fn linear_to_gamma_color(value: f64) -> f64 {
     }
     value.sqrt()
 }
+
+pub fn reflect_vector(vec: &Vec3, normal: &Vec3) -> Vec3 {
+    vec - (2.0 * Vec3::dot(vec, normal) * normal)
+}
