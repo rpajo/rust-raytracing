@@ -18,9 +18,6 @@ pub struct Camera {
     pub max_ray_bounces: u16,
 
     render_image_heigh: i32,
-    viewport_height: f64,
-    viewport_width: f64,
-    focal_length: f64,
     position: Vec3,
 
     pixel_delta_u: Vec3,
@@ -63,9 +60,6 @@ impl Camera {
             aspect_ratio,
             render_image_width: image_width,
             render_image_heigh: image_height,
-            viewport_height: vp_height,
-            viewport_width: vp_width,
-            focal_length,
             position: camera_position,
             pixel_00_loc,
             pixel_delta_u,
