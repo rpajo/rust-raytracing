@@ -38,9 +38,10 @@ pub fn reflect_vector(vec: &Vec3, normal: &Vec3) -> Vec3 {
     vec - (2.0 * Vec3::dot(vec, normal) * normal)
 }
 
-pub fn refract(vec: &Vec3, normal: &Vec3, eta_ratio: f64) -> Vec3 {
+pub fn refract_vector(vec: &Vec3, normal: &Vec3, refraction_ratio: f64) -> Vec3 {
+    // snells law
     let cos_theta = Vec3::dot(&-vec, normal).min(1.0);
-    let ref_vec_perp = eta_ratio * (vec + cos_theta * normal);
+    let ref_vec_perp = refraction_ratio * (vec + (cos_theta * normal));
     let ref_vec_para = -(1.0 - ref_vec_perp.length_squared()).abs().sqrt() * normal;
     ref_vec_perp + ref_vec_para
 }

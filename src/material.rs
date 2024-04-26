@@ -1,7 +1,7 @@
 use crate::{
     objects::object::HitRecord,
     ray::Ray,
-    utils::helpers::{random_in_unit_sphere_normalized, reflect_vector, refract},
+    utils::helpers::{random_in_unit_sphere_normalized, reflect_vector, refract_vector},
     vec3::{Color3, Vec3},
 };
 
@@ -97,7 +97,18 @@ impl Material for Dielectric {
             self.refraction_index
         };
 
-        let refracted_vec = refract(&ray.dir.normalize(), &hit.normal, reflection_index);
+        let unit_dir = &ray.dir.normalize();
+
+        let cos_theta = Vec3::dot(&-unit_dir, &hit.normal).min(1.0);
+        let sin_theta = (1.0 - cos_theta * cos_theta).sqrt();
+
+        let cannot_reflect = reflection_index * sin_theta > 1.0;
+
+        let refracted_vec = if cannot_reflect {
+            reflect_vector(unit_dir, &hit.normal)
+        } else {
+            refract_vector(unit_dir, &hit.normal, reflection_index)
+        };
 
         Some((color, Ray::new(hit.point, refracted_vec)))
     }
