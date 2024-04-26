@@ -1,7 +1,7 @@
 use crate::{
     objects::object::HitRecord,
     ray::Ray,
-    utils::helpers::{random_in_unit_sphere_normalized, reflect_vector},
+    utils::helpers::{random_in_unit_sphere_normalized, reflect_vector, refract},
     vec3::{Color3, Vec3},
 };
 
@@ -13,8 +13,12 @@ pub struct Lambert {
 }
 pub struct Metallic {
     albedo: Color3,
+    fuzz: f64,
 }
 
+pub struct Dielectric {
+    refraction_index: f64,
+}
 pub struct NormalMaterial {}
 
 impl Lambert {
@@ -38,21 +42,39 @@ impl Material for Lambert {
     }
 }
 
+impl Dielectric {
+    pub fn new(refraction_index: f64) -> Self {
+        Self { refraction_index }
+    }
+}
+
 impl Metallic {
     pub fn default() -> Self {
         Metallic {
             albedo: Color3::WHITE,
+            fuzz: 0.0,
         }
     }
-    pub fn new(color: Color3) -> Self {
-        Self { albedo: color }
+    pub fn new(color: Color3, fuzz: f64) -> Self {
+        Self {
+            albedo: color,
+            fuzz,
+        }
     }
 }
 
 impl Material for Metallic {
     fn reflect(&self, ray: &Ray, hit: &HitRecord) -> Option<(Color3, Ray)> {
         let reflected = reflect_vector(&ray.dir, &hit.normal);
-        let reflected_ray = Ray::new(hit.point, reflected);
+        let reflected_fuzzed =
+            reflected.normalize() + self.fuzz * random_in_unit_sphere_normalized();
+
+        let has_same_direction = Vec3::dot(&reflected_fuzzed, &hit.normal) > 0.0;
+        if !has_same_direction {
+            return None;
+        }
+        let reflected_ray = Ray::new(hit.point, reflected_fuzzed);
+
         Some((self.albedo, reflected_ray))
     }
 }
@@ -63,5 +85,20 @@ impl Material for NormalMaterial {
 
         // todo: probably better as post process?
         Some((color, Ray::new(hit.point, Vec3::ZERO)))
+    }
+}
+
+impl Material for Dielectric {
+    fn reflect(&self, ray: &Ray, hit: &HitRecord) -> Option<(Color3, Ray)> {
+        let color = Color3::WHITE;
+        let reflection_index = if hit.front_face {
+            1.0 / self.refraction_index
+        } else {
+            self.refraction_index
+        };
+
+        let refracted_vec = refract(&ray.dir.normalize(), &hit.normal, reflection_index);
+
+        Some((color, Ray::new(hit.point, refracted_vec)))
     }
 }
