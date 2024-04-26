@@ -39,9 +39,17 @@ pub fn reflect_vector(vec: &Vec3, normal: &Vec3) -> Vec3 {
 }
 
 pub fn refract_vector(vec: &Vec3, normal: &Vec3, refraction_ratio: f64) -> Vec3 {
-    // snells law
+    // Snell's law
+    // https://en.wikipedia.org/wiki/Snell%27s_law
     let cos_theta = Vec3::dot(&-vec, normal).min(1.0);
     let ref_vec_perp = refraction_ratio * (vec + (cos_theta * normal));
     let ref_vec_para = -(1.0 - ref_vec_perp.length_squared()).abs().sqrt() * normal;
     ref_vec_perp + ref_vec_para
+}
+
+pub fn reflectance(cosine: f64, refraction_index: f64) -> f64 {
+    // Schlick's approximation
+    // https://en.wikipedia.org/wiki/Schlick%27s_approximation
+    let r0 = ((1.0 - refraction_index) / (1.0 + refraction_index)).powi(2);
+    r0 + (1.0 - r0) * (1.0 - cosine).powi(5)
 }

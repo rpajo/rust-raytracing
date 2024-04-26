@@ -1,7 +1,11 @@
+use rand::{rngs::ThreadRng, Rng};
+
 use crate::{
     objects::object::HitRecord,
     ray::Ray,
-    utils::helpers::{random_in_unit_sphere_normalized, reflect_vector, refract_vector},
+    utils::helpers::{
+        random_in_unit_sphere_normalized, reflect_vector, reflectance, refract_vector,
+    },
     vec3::{Color3, Vec3},
 };
 
@@ -103,8 +107,13 @@ impl Material for Dielectric {
         let sin_theta = (1.0 - cos_theta * cos_theta).sqrt();
 
         let cannot_reflect = reflection_index * sin_theta > 1.0;
-
-        let refracted_vec = if cannot_reflect {
+        // only calculate reflectance if not yet reflected
+        let perfect_reflection = if !cannot_reflect {
+            reflectance(cos_theta, self.refraction_index) > rand::thread_rng().gen()
+        } else {
+            false
+        };
+        let refracted_vec = if cannot_reflect || perfect_reflection {
             reflect_vector(unit_dir, &hit.normal)
         } else {
             refract_vector(unit_dir, &hit.normal, reflection_index)

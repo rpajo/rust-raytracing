@@ -27,12 +27,18 @@ fn main() -> std::io::Result<()> {
 
     let ground_mat = Lambert::new(Color3::new(0.8, 0.8, 0.0));
     let mat_1 = Lambert::new(Color3::new(0.1, 0.2, 0.5));
-    let mat_2 = Dielectric::new(1.00 / 1.33);
+    let mat_glass = Dielectric::new(1.5);
+    let mat_inside_glass = Dielectric::new(1.0 / 1.5);
     let mat_3 = Metallic::new(Color3::new(0.8, 0.6, 0.2), 0.3);
 
     world.add_object(Sphere::new(Vec3::new(0.0, -100.5, -1.0), 100.0, ground_mat));
     world.add_object(Sphere::new(Vec3::new(0.0, 0.0, -1.2), 0.5, mat_1));
-    world.add_object(Sphere::new(Vec3::new(-1.0, 0.0, -1.0), 0.5, mat_2));
+    world.add_object(Sphere::new(Vec3::new(-1.0, 0.0, -1.0), 0.5, mat_glass));
+    world.add_object(Sphere::new(
+        Vec3::new(-1.0, 0.0, -1.0),
+        0.4,
+        mat_inside_glass,
+    ));
     world.add_object(Sphere::new(Vec3::new(1.0, 0.0, -1.0), 0.5, mat_3));
 
     match camera.render(&world, filename) {
