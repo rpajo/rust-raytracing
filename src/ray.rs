@@ -1,5 +1,5 @@
 use crate::{
-    utils::{helpers, interval::Interval},
+    utils::interval::Interval,
     vec3::{Color3, Pos3, Vec3},
     world::World,
 };

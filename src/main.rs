@@ -11,7 +11,7 @@ use crate::vec3::Vec3;
 use crate::world::World;
 use camera::{AntiAliasingMethod, Camera, CameraSetup};
 use material::{Dielectric, Lambert, Metallic};
-use objects::sphere::Sphere;
+use objects::{plane::Plane, sphere::Sphere};
 use vec3::Color3;
 
 fn main() -> std::io::Result<()> {
@@ -34,18 +34,18 @@ fn main() -> std::io::Result<()> {
             z: 1.0,
         },
         max_ray_bounces: 50,
-        vfow_deg: 20.0,
+        vfow_deg: 90.0,
     });
 
     let mut world = World::new();
 
-    let ground_mat = Lambert::new(Color3::new(0.8, 0.8, 0.0));
+    let ground_mat = Lambert::new(Color3::new(0.8, 0.8, 0.2));
     let mat_1 = Lambert::new(Color3::new(0.1, 0.2, 0.5));
     let mat_glass = Dielectric::new(1.5);
     let mat_inside_glass = Dielectric::new(1.0 / 1.5);
     let mat_3 = Metallic::new(Color3::new(0.8, 0.6, 0.2), 0.3);
 
-    world.add_object(Sphere::new(Vec3::new(0.0, -100.5, -1.0), 100.0, ground_mat));
+    world.add_object(Plane::new(Vec3::new(0.0, -1.0, 0.0), ground_mat));
     world.add_object(Sphere::new(Vec3::new(0.0, 0.0, -1.2), 0.5, mat_1));
     world.add_object(Sphere::new(Vec3::new(-1.0, 0.0, -1.0), 0.5, mat_glass));
     world.add_object(Sphere::new(

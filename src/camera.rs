@@ -26,9 +26,6 @@ pub struct Camera {
     pixel_delta_u: Vec3,
     pixel_delta_v: Vec3,
     pixel_00_loc: Vec3,
-    w: Vec3, // relative unit vector pointing opposite of the view direction
-    u: Vec3, // relative unit vector pointing right
-    v: Vec3, // relative unit vector pointing up
 }
 
 pub struct CameraSetup {
@@ -87,9 +84,6 @@ impl Camera {
             pixel_delta_v,
             anti_aliasing: config.anti_aliasing,
             max_ray_bounces: config.max_ray_bounces,
-            u: camera_u,
-            v: camera_v,
-            w: camera_w,
         }
     }
 

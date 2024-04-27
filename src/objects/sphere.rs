@@ -2,7 +2,7 @@ use std::rc::Rc;
 
 use super::object::{HitRecord, Object};
 use crate::{
-    material::{Lambert, Material},
+    material::Material,
     ray::Ray,
     vec3::{Pos3, Vec3},
 };
@@ -38,15 +38,14 @@ impl Object for Sphere {
         }
 
         let hit_point = ray.cast(root);
+        let normal = (hit_point - self.center) / self.radius;
         let mut hit_record = HitRecord {
             ray_scalar: root,
             point: hit_point,
             normal: (hit_point - self.center) / self.radius,
-            front_face: true,
+            front_face: Vec3::dot(&ray.dir, &normal) > 0.0,
             material: self.material.clone(),
         };
-
-        let normal = (hit_point - self.center) / self.radius;
         hit_record.set_face_normal(ray, &normal);
 
         Some(hit_record)
