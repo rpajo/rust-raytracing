@@ -23,14 +23,18 @@ fn main() -> std::io::Result<()> {
         image_width,
         aspect_ratio,
         anti_aliasing: AntiAliasingMethod::RandomSuperSampling(8),
-        look_at: Vec3::ZERO,
+        look_at: Vec3 {
+            x: 0.0,
+            y: 0.0,
+            z: -1.0,
+        },
         position: Vec3 {
-            x: 4.0,
-            y: 10.0,
-            z: 4.0,
+            x: -2.0,
+            y: 2.0,
+            z: 1.0,
         },
         max_ray_bounces: 50,
-        vfow_deg: 90.0,
+        vfow_deg: 20.0,
     });
 
     let mut world = World::new();

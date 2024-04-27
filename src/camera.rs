@@ -26,6 +26,9 @@ pub struct Camera {
     pixel_delta_u: Vec3,
     pixel_delta_v: Vec3,
     pixel_00_loc: Vec3,
+    w: Vec3, // relative unit vector pointing opposite of the view direction
+    u: Vec3, // relative unit vector pointing right
+    v: Vec3, // relative unit vector pointing up
 }
 
 pub struct CameraSetup {
@@ -45,29 +48,29 @@ pub enum AntiAliasingMethod {
 }
 
 impl Camera {
-    pub fn new(camera_setup: CameraSetup) -> Self {
-        let image_width = camera_setup.image_width;
-        let image_height = (image_width as f64 / camera_setup.aspect_ratio) as i32;
+    pub fn new(config: CameraSetup) -> Self {
+        let image_width = config.image_width;
+        let image_height = (image_width as f64 / config.aspect_ratio) as i32;
         let image_ratio = image_width as f64 / image_height as f64;
 
-        let focal_length = 1.0;
+        let focal_length = (config.position - config.look_at).length();
 
-        let theta = degrees_ro_radians(camera_setup.vfow_deg);
+        let theta = degrees_ro_radians(config.vfow_deg);
         let h: f64 = f64::tan(theta / 2.0);
         let vp_height = 2.0 * h * focal_length;
         let vp_width = vp_height * image_ratio;
 
-        let camera_position = Vec3::ZERO;
+        let up_vector = Vec3::new(0.0, 1.0, 0.0);
+        let camera_position = config.position;
+        let camera_w = (config.position - config.look_at).normalize();
+        let camera_u = Vec3::cross(&up_vector, &camera_w).normalize();
+        let camera_v = Vec3::cross(&camera_w, &camera_u);
         // view port relative vectors (x along the width and y along the height of the viewport)
-        // u => x axis in our basic case
-        // v => y axis in our basic case
-        // todo: if camera is pointing somewhere else, these vectors must also change
-        let vp_u_dir = Vec3::new(vp_width, 0.0, 0.0);
-        let vp_v_dir = Vec3::new(0.0, -vp_height, 0.0);
-        let vp_origin_upper_left = camera_position
-            - (0.5 * vp_u_dir)
-            - (0.5 * vp_v_dir)
-            - Vec3::new(0.0, 0.0, focal_length);
+
+        let vp_u_dir = vp_width * camera_u;
+        let vp_v_dir = vp_height * -camera_v;
+        let vp_origin_upper_left =
+            camera_position - (focal_length * camera_w) - (vp_u_dir / 2.0) - (vp_v_dir / 2.0);
 
         let pixel_delta_u = vp_u_dir / image_width as f64;
         let pixel_delta_v = vp_v_dir / image_height as f64;
@@ -75,15 +78,18 @@ impl Camera {
 
         Camera {
             position: camera_position,
-            look_at: camera_setup.look_at,
-            aspect_ratio: camera_setup.aspect_ratio,
-            render_image_width: camera_setup.image_width,
+            look_at: config.look_at,
+            aspect_ratio: config.aspect_ratio,
+            render_image_width: config.image_width,
             render_image_heigh: image_height,
             pixel_00_loc,
             pixel_delta_u,
             pixel_delta_v,
-            anti_aliasing: camera_setup.anti_aliasing,
-            max_ray_bounces: camera_setup.max_ray_bounces,
+            anti_aliasing: config.anti_aliasing,
+            max_ray_bounces: config.max_ray_bounces,
+            u: camera_u,
+            v: camera_v,
+            w: camera_w,
         }
     }
 
