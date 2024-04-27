@@ -7,7 +7,7 @@ use std::{
 use crate::{
     image::color_to_ppm,
     ray::Ray,
-    utils::helpers::degrees_ro_radians,
+    utils::helpers::{degrees_to_radians, random_in_unit_disk},
     vec3::{Color3, Pos3, Vec3},
     world::World,
 };
@@ -20,6 +20,10 @@ pub struct Camera {
     pub render_image_width: i32,
     pub anti_aliasing: AntiAliasingMethod,
     pub max_ray_bounces: u16,
+
+    defocus_angle: f64,
+    defocus_disk_u: Vec3,
+    defocus_disk_v: Vec3,
 
     render_image_heigh: i32,
 
@@ -36,6 +40,8 @@ pub struct CameraSetup {
     pub look_at: Vec3,
     pub anti_aliasing: AntiAliasingMethod,
     pub max_ray_bounces: u16,
+    pub focus_distance: f64,
+    pub defocus_angle: f64,
 }
 
 pub enum AntiAliasingMethod {
@@ -50,11 +56,12 @@ impl Camera {
         let image_height = (image_width as f64 / config.aspect_ratio) as i32;
         let image_ratio = image_width as f64 / image_height as f64;
 
-        let focal_length = (config.position - config.look_at).length();
+        let focus_distance = config.focus_distance;
+        let defocus_angle = config.defocus_angle;
 
-        let theta = degrees_ro_radians(config.vfow_deg);
-        let h: f64 = f64::tan(theta / 2.0);
-        let vp_height = 2.0 * h * focal_length;
+        let theta = degrees_to_radians(config.vfow_deg);
+        let h: f64 = (theta / 2.0).tan();
+        let vp_height = 2.0 * h * focus_distance;
         let vp_width = vp_height * image_ratio;
 
         let up_vector = Vec3::new(0.0, 1.0, 0.0);
@@ -66,12 +73,15 @@ impl Camera {
 
         let vp_u_dir = vp_width * camera_u;
         let vp_v_dir = vp_height * -camera_v;
-        let vp_origin_upper_left =
-            camera_position - (focal_length * camera_w) - (vp_u_dir / 2.0) - (vp_v_dir / 2.0);
 
         let pixel_delta_u = vp_u_dir / image_width as f64;
         let pixel_delta_v = vp_v_dir / image_height as f64;
-        let pixel_00_loc = vp_origin_upper_left + 0.5 * (pixel_delta_u + pixel_delta_v);
+        let viewport_upper_left =
+            camera_position - (focus_distance * camera_w) - vp_u_dir / 2.0 - vp_v_dir / 2.0;
+        let pixel_00_loc = viewport_upper_left + 0.5 * (pixel_delta_u + pixel_delta_v);
+
+        let defocus_radius =
+            config.focus_distance * (degrees_to_radians(defocus_angle / 2.0)).tan();
 
         Camera {
             position: camera_position,
@@ -84,6 +94,9 @@ impl Camera {
             pixel_delta_v,
             anti_aliasing: config.anti_aliasing,
             max_ray_bounces: config.max_ray_bounces,
+            defocus_disk_u: camera_u * defocus_radius,
+            defocus_disk_v: camera_v * defocus_radius,
+            defocus_angle,
         }
     }
 
@@ -150,10 +163,21 @@ impl Camera {
         let offset_y = rng.gen_range(-0.5..0.5);
         // println!("rand x: {}, rand y: {}", offset_x, offset_y);
 
+        let ray_origin = if self.defocus_angle <= 0.0 {
+            self.position
+        } else {
+            self.defocus_disk_sample()
+        };
         let pixel_pos = self.pixel_00_loc
             + (y as f64 + offset_x) * self.pixel_delta_v
             + (x as f64 + offset_y) * self.pixel_delta_u;
 
-        Ray::new(self.position, pixel_pos - self.position)
+        Ray::new(ray_origin, pixel_pos - self.position)
+    }
+
+    fn defocus_disk_sample(&self) -> Pos3 {
+        // Returns a random point in the camera defocus disk.
+        let p = random_in_unit_disk();
+        self.position + (p.x * self.defocus_disk_u) + (p.y * self.defocus_disk_v)
     }
 }

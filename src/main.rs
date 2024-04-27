@@ -34,18 +34,21 @@ fn main() -> std::io::Result<()> {
             z: 1.0,
         },
         max_ray_bounces: 50,
-        vfow_deg: 90.0,
+        vfow_deg: 20.0,
+        defocus_angle: 0.6,
+        focus_distance: 1.2,
     });
 
     let mut world = World::new();
 
-    let ground_mat = Lambert::new(Color3::new(0.8, 0.8, 0.2));
+    let ground_mat = Lambert::new(Color3::new(0.5, 0.5, 0.5));
+    world.add_object(Plane::new(Vec3::new(0.0, -1.0, 0.0), ground_mat));
+
     let mat_1 = Lambert::new(Color3::new(0.1, 0.2, 0.5));
     let mat_glass = Dielectric::new(1.5);
     let mat_inside_glass = Dielectric::new(1.0 / 1.5);
     let mat_3 = Metallic::new(Color3::new(0.8, 0.6, 0.2), 0.3);
 
-    world.add_object(Plane::new(Vec3::new(0.0, -1.0, 0.0), ground_mat));
     world.add_object(Sphere::new(Vec3::new(0.0, 0.0, -1.2), 0.5, mat_1));
     world.add_object(Sphere::new(Vec3::new(-1.0, 0.0, -1.0), 0.5, mat_glass));
     world.add_object(Sphere::new(
