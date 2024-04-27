@@ -9,7 +9,7 @@ mod world;
 
 use crate::vec3::Vec3;
 use crate::world::World;
-use camera::{AntiAliasingMethod, Camera};
+use camera::{AntiAliasingMethod, Camera, CameraSetup};
 use material::{Dielectric, Lambert, Metallic};
 use objects::sphere::Sphere;
 use vec3::Color3;
@@ -19,9 +19,19 @@ fn main() -> std::io::Result<()> {
     let aspect_ratio = 16.0 / 9.0;
     let image_width = 1024;
 
-    let mut camera = Camera::new(image_width, aspect_ratio);
-    camera.anti_aliasing = AntiAliasingMethod::RandomSuperSampling(8);
-    camera.max_ray_bounces = 50;
+    let camera = Camera::new(CameraSetup {
+        image_width,
+        aspect_ratio,
+        anti_aliasing: AntiAliasingMethod::RandomSuperSampling(8),
+        look_at: Vec3::ZERO,
+        position: Vec3 {
+            x: 4.0,
+            y: 10.0,
+            z: 4.0,
+        },
+        max_ray_bounces: 50,
+        vfow_deg: 90.0,
+    });
 
     let mut world = World::new();
 
@@ -40,6 +50,13 @@ fn main() -> std::io::Result<()> {
         mat_inside_glass,
     ));
     world.add_object(Sphere::new(Vec3::new(1.0, 0.0, -1.0), 0.5, mat_3));
+
+    let mat_blue = Lambert::new(Color3::new(0.0, 0.0, 0.9));
+    let mat_red = Lambert::new(Color3::new(0.9, 0.0, 0.0));
+
+    let r = (std::f64::consts::PI / 4.0).cos();
+    world.add_object(Sphere::new(Vec3::new(r, 0.0, -0.4), r / 4.0, mat_red));
+    world.add_object(Sphere::new(Vec3::new(-r, 0.0, -0.4), r / 4.0, mat_blue));
 
     match camera.render(&world, filename) {
         Ok(_) => println!("Rendering finished"),

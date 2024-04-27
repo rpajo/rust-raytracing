@@ -7,22 +7,35 @@ use std::{
 use crate::{
     image::color_to_ppm,
     ray::Ray,
-    vec3::{Color3, Vec3},
+    utils::helpers::degrees_ro_radians,
+    vec3::{Color3, Pos3, Vec3},
     world::World,
 };
 
 pub struct Camera {
+    pub position: Vec3,
+    pub look_at: Pos3,
+
     pub aspect_ratio: f64,
     pub render_image_width: i32,
     pub anti_aliasing: AntiAliasingMethod,
     pub max_ray_bounces: u16,
 
     render_image_heigh: i32,
-    position: Vec3,
 
     pixel_delta_u: Vec3,
     pixel_delta_v: Vec3,
     pixel_00_loc: Vec3,
+}
+
+pub struct CameraSetup {
+    pub image_width: i32,
+    pub aspect_ratio: f64,
+    pub vfow_deg: f64,
+    pub position: Vec3,
+    pub look_at: Vec3,
+    pub anti_aliasing: AntiAliasingMethod,
+    pub max_ray_bounces: u16,
 }
 
 pub enum AntiAliasingMethod {
@@ -32,12 +45,16 @@ pub enum AntiAliasingMethod {
 }
 
 impl Camera {
-    pub fn new(image_width: i32, aspect_ratio: f64) -> Self {
-        let image_height = (image_width as f64 / aspect_ratio) as i32;
+    pub fn new(camera_setup: CameraSetup) -> Self {
+        let image_width = camera_setup.image_width;
+        let image_height = (image_width as f64 / camera_setup.aspect_ratio) as i32;
         let image_ratio = image_width as f64 / image_height as f64;
 
         let focal_length = 1.0;
-        let vp_height = 2.0;
+
+        let theta = degrees_ro_radians(camera_setup.vfow_deg);
+        let h: f64 = f64::tan(theta / 2.0);
+        let vp_height = 2.0 * h * focal_length;
         let vp_width = vp_height * image_ratio;
 
         let camera_position = Vec3::ZERO;
@@ -57,15 +74,16 @@ impl Camera {
         let pixel_00_loc = vp_origin_upper_left + 0.5 * (pixel_delta_u + pixel_delta_v);
 
         Camera {
-            aspect_ratio,
-            render_image_width: image_width,
-            render_image_heigh: image_height,
             position: camera_position,
+            look_at: camera_setup.look_at,
+            aspect_ratio: camera_setup.aspect_ratio,
+            render_image_width: camera_setup.image_width,
+            render_image_heigh: image_height,
             pixel_00_loc,
             pixel_delta_u,
             pixel_delta_v,
-            anti_aliasing: AntiAliasingMethod::None,
-            max_ray_bounces: 10,
+            anti_aliasing: camera_setup.anti_aliasing,
+            max_ray_bounces: camera_setup.max_ray_bounces,
         }
     }
 
