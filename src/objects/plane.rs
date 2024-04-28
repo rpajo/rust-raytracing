@@ -4,6 +4,7 @@ use super::object::{HitRecord, Object};
 use crate::{
     material::Material,
     ray::Ray,
+    utils::interval::Interval,
     vec3::{Pos3, Vec3},
 };
 
@@ -16,7 +17,7 @@ pub struct Plane {
 }
 
 impl Object for Plane {
-    fn hit(&self, ray: &Ray, t_min: f64, t_max: f64) -> Option<HitRecord> {
+    fn hit(&self, ray: &Ray, t_interval: &Interval) -> Option<HitRecord> {
         let ray_normal_dot = Vec3::dot(&ray.dir, &self.plane_up);
 
         // check for parallel of almost parallel cases
@@ -27,7 +28,7 @@ impl Object for Plane {
         let p0l0 = (self.center - ray.pos) * self.plane_up;
         let scalar = Vec3::dot(&p0l0, &self.plane_up) / ray_normal_dot;
 
-        if scalar >= t_min && scalar <= t_max {
+        if t_interval.contains_including(scalar) {
             // println!("Hit: {}", scalar);
             let hit_point = ray.cast(scalar);
             let mut hit_record = HitRecord {

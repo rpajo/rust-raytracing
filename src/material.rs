@@ -26,11 +26,6 @@ pub struct Dielectric {
 pub struct NormalMaterial {}
 
 impl Lambert {
-    pub fn default() -> Self {
-        Self {
-            albedo: Color3::WHITE,
-        }
-    }
     pub fn new(color: Color3) -> Self {
         Self { albedo: color }
     }
