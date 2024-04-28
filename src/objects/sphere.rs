@@ -4,6 +4,7 @@ use super::object::{HitRecord, Object};
 use crate::{
     material::Material,
     ray::Ray,
+    utils::interval::Interval,
     vec3::{Pos3, Vec3},
 };
 
@@ -14,7 +15,7 @@ pub struct Sphere {
 }
 
 impl Object for Sphere {
-    fn hit(&self, ray: &Ray, t_min: f64, t_max: f64) -> Option<HitRecord> {
+    fn hit(&self, ray: &Ray, t_interval: &Interval) -> Option<HitRecord> {
         let ray_to_sphere = self.center - ray.pos;
         let a = ray.dir.length_squared();
         let h = Vec3::dot(&ray.dir, &ray_to_sphere);
@@ -29,10 +30,10 @@ impl Object for Sphere {
         let mut root: f64 = (h - disc_sqr) / a;
 
         // try first root
-        if root <= t_min || root >= t_max {
+        if !t_interval.contains_including(root) {
             // try second root
             root = (h + disc_sqr) / a;
-            if root <= t_min || root >= t_max {
+            if !t_interval.contains_including(root) {
                 return None;
             }
         }
@@ -42,7 +43,7 @@ impl Object for Sphere {
         let mut hit_record = HitRecord {
             ray_scalar: root,
             point: hit_point,
-            normal: (hit_point - self.center) / self.radius,
+            normal,
             front_face: Vec3::dot(&ray.dir, &normal) > 0.0,
             material: self.material.clone(),
         };

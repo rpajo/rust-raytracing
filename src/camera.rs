@@ -5,9 +5,8 @@ use std::{
 };
 
 use crate::{
-    image::color_to_ppm,
     ray::Ray,
-    utils::helpers::{degrees_to_radians, random_in_unit_disk},
+    utils::helpers::{color_to_ppm, degrees_to_radians, random_in_unit_disk},
     vec3::{Color3, Pos3, Vec3},
     world::World,
 };
@@ -46,8 +45,8 @@ pub struct CameraSetup {
 
 pub enum AntiAliasingMethod {
     None,
-    UniformSuperSampling(i8),
-    RandomSuperSampling(i8),
+    UniformSuperSampling(u16),
+    RandomSuperSampling(u16),
 }
 
 impl Camera {
@@ -169,10 +168,10 @@ impl Camera {
             self.defocus_disk_sample()
         };
         let pixel_pos = self.pixel_00_loc
-            + (y as f64 + offset_x) * self.pixel_delta_v
-            + (x as f64 + offset_y) * self.pixel_delta_u;
+            + (x as f64 + offset_x) * self.pixel_delta_u
+            + (y as f64 + offset_y) * self.pixel_delta_v;
 
-        Ray::new(ray_origin, pixel_pos - self.position)
+        Ray::new(ray_origin, pixel_pos - ray_origin)
     }
 
     fn defocus_disk_sample(&self) -> Pos3 {

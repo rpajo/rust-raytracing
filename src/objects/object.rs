@@ -3,6 +3,7 @@ use std::rc::Rc;
 use crate::{
     material::Material,
     ray::Ray,
+    utils::interval::Interval,
     vec3::{Pos3, Vec3},
 };
 
@@ -15,7 +16,7 @@ pub struct HitRecord {
 }
 
 pub trait Object {
-    fn hit(&self, ray: &Ray, t_min: f64, t_max: f64) -> Option<HitRecord>;
+    fn hit(&self, ray: &Ray, t_interval: &Interval) -> Option<HitRecord>;
 }
 
 impl HitRecord {

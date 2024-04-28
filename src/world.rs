@@ -26,7 +26,7 @@ impl World {
         let mut nearest_hit = t_interval.max;
 
         for obj in &self.objects {
-            if let Some(h) = obj.hit(ray, t_interval.min, nearest_hit) {
+            if let Some(h) = obj.hit(ray, &Interval::new(t_interval.min, nearest_hit)) {
                 nearest_hit = h.ray_scalar;
                 hit = Some(h);
             }

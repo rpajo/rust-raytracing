@@ -25,13 +25,12 @@ impl Ray {
 
     pub fn ray_color(&self, world: &World, bounces_remaining: u16) -> Color3 {
         if bounces_remaining == 0 {
-            // println!("Max bounces exceeded");
             return Color3::BLACK;
         }
 
-        let hit = world.hit_objects(self, &Interval::new(0.000001, f64::MAX));
+        let hit = world.hit_objects(self, &Interval::new(0.0001, f64::MAX));
         if let Some(hit) = hit {
-            return match hit.material.reflect(&self, &hit) {
+            return match hit.material.reflect(self, &hit) {
                 Some((attenuation, reflected_ray)) => {
                     attenuation * reflected_ray.ray_color(world, bounces_remaining - 1)
                 }
